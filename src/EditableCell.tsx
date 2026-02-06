@@ -6,6 +6,10 @@ declare module "@tanstack/react-table" {
   interface TableMeta<TData extends RowData> {
     updateData: (rowIndex: number, columnId: string, value: unknown) => void;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    editable?: boolean;
+  }
 }
 
 export function EditableCell<TData extends RowData>({
@@ -16,6 +20,7 @@ export function EditableCell<TData extends RowData>({
 }: CellContext<TData, unknown>) {
   const initialValue = getValue();
   const [value, setValue] = useState(initialValue);
+  const editable = column.columnDef.meta?.editable ?? false;
 
   useEffect(() => {
     setValue(initialValue);
@@ -24,6 +29,10 @@ export function EditableCell<TData extends RowData>({
   const onBlur = () => {
     table.options.meta?.updateData(row.index, column.id, value);
   };
+
+  if (!editable) {
+    return <>{value as string}</>;
+  }
 
   return (
     <input

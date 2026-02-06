@@ -44,23 +44,28 @@ const columnHelper = createColumnHelper<User>();
 const columns = [
   columnHelper.accessor("id", {
     header: "ID",
-    cell: (info) => info.getValue(),
+    cell: EditableCell,
+    meta: { editable: false },
   }),
   columnHelper.accessor("name", {
     header: "名前",
     cell: EditableCell,
+    meta: { editable: true },
   }),
   columnHelper.accessor("age", {
     header: "年齢",
     cell: EditableCell,
+    meta: { editable: true },
   }),
   columnHelper.accessor("email", {
     header: "メールアドレス",
     cell: EditableCell,
+    meta: { editable: true },
   }),
   columnHelper.accessor("department", {
     header: "部署",
     cell: EditableCell,
+    meta: { editable: true },
   }),
 ];
 
