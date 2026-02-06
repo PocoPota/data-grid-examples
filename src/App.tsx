@@ -7,9 +7,20 @@ import {
   getSortedRowModel,
   useReactTable,
   type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { Box, Heading, Table, TextField } from "@radix-ui/themes";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Flex,
+  Heading,
+  Popover,
+  Table,
+  Text,
+  TextField,
+} from "@radix-ui/themes";
+import { GearIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 type User = {
   id: number;
@@ -61,13 +72,15 @@ const sortIndicator: Record<string, string> = {
 export default function App() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter },
+    state: { sorting, globalFilter, columnVisibility },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -78,17 +91,48 @@ export default function App() {
       <Heading size="5" mb="4">
         TanStack Table サンプル
       </Heading>
-      <Box mb="3" maxWidth="300px">
-        <TextField.Root
-          placeholder="検索..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-        >
-          <TextField.Slot>
-            <MagnifyingGlassIcon />
-          </TextField.Slot>
-        </TextField.Root>
-      </Box>
+      <Flex gap="3" mb="3" align="end">
+        <Box maxWidth="300px" flexGrow="1">
+          <TextField.Root
+            placeholder="検索..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+          >
+            <TextField.Slot>
+              <MagnifyingGlassIcon />
+            </TextField.Slot>
+          </TextField.Root>
+        </Box>
+        <Popover.Root>
+          <Popover.Trigger>
+            <Button variant="soft">
+              <GearIcon /> 表示カラム
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content>
+            <Flex direction="column" gap="2">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => (
+                  <Text as="label" size="2" key={column.id}>
+                    <Flex gap="2" align="center">
+                      <Checkbox
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      />
+                      {typeof column.columnDef.header === "string"
+                        ? column.columnDef.header
+                        : column.id}
+                    </Flex>
+                  </Text>
+                ))}
+            </Flex>
+          </Popover.Content>
+        </Popover.Root>
+      </Flex>
       <Table.Root variant="surface">
         <Table.Header>
           {table.getHeaderGroups().map((headerGroup) => (
