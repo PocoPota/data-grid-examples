@@ -23,7 +23,10 @@ import {
 import { DownloadIcon, GearIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { EditableCell } from "./EditableCell";
 import { NameCell } from "./NameCell";
+import { SelectCell } from "./SelectCell";
 import { downloadCsv } from "./lib/downloadCsv";
+
+const departmentOptions = ["営業部", "開発部", "人事部", "総務部", "経理部"];
 
 type User = {
   id: number;
@@ -56,7 +59,7 @@ const columns = [
   columnHelper.accessor("age", {
     header: "年齢",
     cell: EditableCell,
-    meta: { editable: true },
+    meta: { editable: true, type: "number" },
   }),
   columnHelper.accessor("email", {
     header: "メールアドレス",
@@ -65,8 +68,8 @@ const columns = [
   }),
   columnHelper.accessor("department", {
     header: "部署",
-    cell: EditableCell,
-    meta: { editable: true },
+    cell: SelectCell,
+    meta: { options: departmentOptions },
   }),
 ];
 

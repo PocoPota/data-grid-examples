@@ -9,6 +9,8 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     editable?: boolean;
+    type?: "text" | "number";
+    options?: string[];
   }
 }
 
@@ -23,6 +25,7 @@ export function EditableCell<TData extends RowData>({
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const editable = column.columnDef.meta?.editable ?? false;
+  const inputType = column.columnDef.meta?.type ?? "text";
   const isEditingRef = useRef(false);
 
   useEffect(() => {
@@ -41,12 +44,14 @@ export function EditableCell<TData extends RowData>({
     setIsEditing(false);
     isEditingRef.current = false;
     setIsFocused(false);
-    table.options.meta?.updateData(row.index, column.id, value);
+    const committed = inputType === "number" ? Number(value) : value;
+    table.options.meta?.updateData(row.index, column.id, committed);
   };
 
   return (
     <input
       ref={inputRef}
+      inputMode={inputType === "number" ? "numeric" : undefined}
       value={value as string}
       size={Math.max(String(value).length, 1)}
       onChange={(e) => {
