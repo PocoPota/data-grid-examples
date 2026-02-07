@@ -48,6 +48,7 @@ export function EditableCell<TData extends RowData>({
     <input
       ref={inputRef}
       value={value as string}
+      size={Math.max(String(value).length, 1)}
       onChange={(e) => {
         if (isEditingRef.current) {
           setValue(e.target.value);
