@@ -252,6 +252,16 @@ export default function App() {
             ))}
           </Table.Body>
       </Table.Root>
+      {selected.size > 0 && (
+        <Box mt="3" p="3" style={{ background: "var(--gray-a3)", borderRadius: "var(--radius-2)" }}>
+          <Text size="2" weight="bold">
+            選択中: {selected.size}セル
+          </Text>
+          <Text size="1" color="gray" ml="2" as="span">
+            {" "}[ {[...selected].sort().join(", ")} ]
+          </Text>
+        </Box>
+      )}
     </Box>
   );
 }
