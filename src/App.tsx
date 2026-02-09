@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -9,6 +9,8 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
+import { useSelection } from "./hooks/useSelection";
+import { useCopyToClipboard } from "./hooks/useCopyToClipboard";
 import {
   Box,
   Button,
@@ -84,6 +86,17 @@ export default function App() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  const {
+    selected,
+    isDragging,
+    isSelected,
+    clearSelection,
+    handleCellMouseDown,
+    handleCellMouseEnter,
+    handleMouseUp,
+  } = useSelection();
 
   const table = useReactTable({
     data,
@@ -103,8 +116,40 @@ export default function App() {
           )
         );
       },
+      clearSelection,
     },
   });
+
+  useCopyToClipboard(table, selected);
+
+  // Clear selection when sort order or filter changes
+  useEffect(() => {
+    clearSelection();
+  }, [sorting, globalFilter, columnVisibility, clearSelection]);
+
+  // Global mouseup to end drag
+  useEffect(() => {
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, [handleMouseUp]);
+
+  // Escape to clear selection + click outside table to clear
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") clearSelection();
+    };
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
+        clearSelection();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [clearSelection]);
 
   return (
     <Box p="5">
@@ -156,7 +201,12 @@ export default function App() {
           <DownloadIcon /> CSV出力
         </Button>
       </Flex>
-      <Table.Root variant="surface" style={{ overflowX: "auto" }}>
+      <Table.Root
+        ref={tableRef}
+        variant="surface"
+        className={isDragging ? "selecting" : undefined}
+        style={{ overflowX: "auto" }}
+      >
           <Table.Header>
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Row key={headerGroup.id}>
@@ -183,10 +233,18 @@ export default function App() {
             ))}
           </Table.Header>
           <Table.Body>
-            {table.getRowModel().rows.map((row) => (
+            {table.getRowModel().rows.map((row, ri) => (
               <Table.Row key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <Table.Cell key={cell.id} style={{ whiteSpace: "nowrap" }}>
+                {row.getVisibleCells().map((cell, ci) => (
+                  <Table.Cell
+                    key={cell.id}
+                    className={
+                      isSelected(ri, ci) ? "cell-selected" : undefined
+                    }
+                    style={{ whiteSpace: "nowrap" }}
+                    onMouseDown={(e) => handleCellMouseDown(ri, ci, e)}
+                    onMouseEnter={() => handleCellMouseEnter(ri, ci)}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </Table.Cell>
                 ))}

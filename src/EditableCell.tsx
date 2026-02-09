@@ -5,6 +5,7 @@ declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface TableMeta<TData extends RowData> {
     updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+    clearSelection?: () => void;
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -68,6 +69,7 @@ export function EditableCell<TData extends RowData>({
       onFocus={() => setIsFocused(true)}
       onDoubleClick={() => {
         if (editable) {
+          table.options.meta?.clearSelection?.();
           setIsEditing(true);
           isEditingRef.current = true;
         }
@@ -83,6 +85,7 @@ export function EditableCell<TData extends RowData>({
         } else if (e.key === "Enter") {
           inputRef.current?.blur();
         } else if (!isEditing && editable && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+          table.options.meta?.clearSelection?.();
           setIsEditing(true);
           isEditingRef.current = true;
           setValue("");
