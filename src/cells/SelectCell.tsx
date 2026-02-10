@@ -10,7 +10,12 @@ export function SelectCell<TData extends RowData>({
 }: CellContext<TData, unknown>) {
   const initialValue = getValue() as string;
   const [isFocused, setIsFocused] = useState(false);
+  const editable = column.columnDef.meta?.editable ?? true;
   const options = column.columnDef.meta?.options ?? [];
+
+  if (!editable) {
+    return <>{initialValue}</>;
+  }
 
   return (
     <Select.Root
@@ -23,9 +28,6 @@ export function SelectCell<TData extends RowData>({
       <Select.Trigger
         variant="ghost"
         style={{
-          width: "100%",
-          padding: "var(--table-cell-padding)",
-          margin: "calc(var(--table-cell-padding) * -1)",
           borderRadius: 0,
           cursor: "pointer",
           boxShadow: isFocused
